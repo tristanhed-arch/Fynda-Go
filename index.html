@@ -1,0 +1,4628 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Fynda Go</title>
+
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  >
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  ></script>
+
+  <style>
+
+    /* =====================================================
+       TEMA
+    ===================================================== */
+
+    :root {
+      --bg: #f2f2f2;
+      --card: #ffffff;
+      --card-soft: #e9e9e9;
+
+      --text: #181818;
+      --muted: #707070;
+
+      --border: #d9d9d9;
+
+      --accent: #202020;
+      --accent-text: #ffffff;
+
+      --nav: rgba(255,255,255,0.94);
+
+      --shadow:
+        0 8px 28px rgba(0,0,0,0.07);
+
+      --shadow-hover:
+        0 14px 40px rgba(0,0,0,0.12);
+    }
+
+    body.dark {
+      --bg: #0f0f0f;
+      --card: #191919;
+      --card-soft: #252525;
+
+      --text: #f3f3f3;
+      --muted: #aaaaaa;
+
+      --border: #343434;
+
+      --accent: #f2f2f2;
+      --accent-text: #111111;
+
+      --nav: rgba(24,24,24,0.94);
+
+      --shadow:
+        0 8px 28px rgba(0,0,0,0.28);
+
+      --shadow-hover:
+        0 14px 40px rgba(0,0,0,0.38);
+    }
+
+
+    /* =====================================================
+       GRUND
+    ===================================================== */
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+      background: var(--bg);
+      color: var(--text);
+
+      padding-bottom: 105px;
+
+      transition:
+        background 0.25s,
+        color 0.25s;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    img {
+      user-select: none;
+    }
+
+
+    /* =====================================================
+       ANIMATIONER
+    ===================================================== */
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: scale(0.97);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    main > * {
+      animation:
+        fadeUp 0.25s ease;
+    }
+
+
+    /* =====================================================
+       HEADER
+    ===================================================== */
+
+    header {
+      position: sticky;
+      top: 0;
+
+      z-index: 2000;
+
+      border-bottom:
+        1px solid var(--border);
+
+      background: var(--card);
+
+      backdrop-filter:
+        blur(12px);
+    }
+
+    .header-inner {
+      width:
+        min(1100px, calc(100% - 32px));
+
+      margin: auto;
+
+      min-height: 70px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+
+      gap: 12px;
+
+      cursor: pointer;
+    }
+
+    .logo-mark {
+      width: 44px;
+      height: 44px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 13px;
+
+      background: var(--accent);
+      color: var(--accent-text);
+
+      font-size: 17px;
+      font-weight: 800;
+
+      transition:
+        transform 0.2s;
+    }
+
+    .brand:hover .logo-mark {
+      transform:
+        rotate(-3deg)
+        scale(1.04);
+    }
+
+    .brand h1 {
+      margin: 0;
+
+      font-size: 22px;
+    }
+
+    .brand p {
+      margin:
+        3px
+        0
+        0;
+
+      color: var(--muted);
+
+      font-size: 12px;
+    }
+
+    .header-actions {
+      display: flex;
+
+      gap: 8px;
+    }
+
+    .icon-button {
+      min-width: 44px;
+      height: 44px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius: 12px;
+
+      background: var(--card);
+      color: var(--text);
+
+      transition:
+        transform 0.15s,
+        background 0.15s;
+    }
+
+    .icon-button:hover {
+      transform:
+        translateY(-2px);
+
+      background:
+        var(--card-soft);
+    }
+
+
+    /* =====================================================
+       MAIN
+    ===================================================== */
+
+    main {
+      width:
+        min(1100px, calc(100% - 32px));
+
+      margin: auto;
+
+      padding:
+        24px
+        0
+        40px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+
+    /* =====================================================
+       HERO
+    ===================================================== */
+
+    .hero {
+      padding: 34px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius: 22px;
+
+      background: var(--card);
+
+      box-shadow: var(--shadow);
+    }
+
+    .hero-badge {
+      display: inline-block;
+
+      padding:
+        7px
+        10px;
+
+      margin-bottom: 12px;
+
+      border-radius: 999px;
+
+      background:
+        var(--card-soft);
+
+      color:
+        var(--muted);
+
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .hero h2 {
+      max-width: 700px;
+
+      margin:
+        0
+        0
+        10px;
+
+      font-size: 36px;
+    }
+
+    .hero p {
+      max-width: 720px;
+
+      margin:
+        0
+        0
+        20px;
+
+      color:
+        var(--muted);
+
+      line-height: 1.6;
+    }
+
+
+    /* =====================================================
+       SEARCH
+    ===================================================== */
+
+    .search-wrapper {
+      display: flex;
+
+      gap: 8px;
+
+      align-items: stretch;
+    }
+
+    .search {
+      width: 100%;
+
+      padding:
+        14px
+        16px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius: 12px;
+
+      outline: none;
+
+      background:
+        var(--bg);
+
+      color:
+        var(--text);
+
+      transition:
+        border 0.2s,
+        box-shadow 0.2s;
+    }
+
+    .search::placeholder {
+      color:
+        var(--muted);
+    }
+
+    .search:focus {
+      border-color:
+        #777;
+
+      box-shadow:
+        0 0 0 3px rgba(100,100,100,0.08);
+    }
+
+
+    /* =====================================================
+       KNAPPAR
+    ===================================================== */
+
+    .primary-button,
+    .secondary-button,
+    .back-button {
+      transition:
+        transform 0.15s,
+        background 0.15s;
+    }
+
+    .primary-button {
+      padding:
+        13px
+        20px;
+
+      border: none;
+
+      border-radius: 12px;
+
+      background:
+        var(--accent);
+
+      color:
+        var(--accent-text);
+
+      font-weight: bold;
+
+      white-space: nowrap;
+    }
+
+    .primary-button:hover {
+      transform:
+        translateY(-2px);
+    }
+
+    .secondary-button,
+    .back-button {
+      padding:
+        11px
+        14px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius: 10px;
+
+      background:
+        var(--card);
+
+      color:
+        var(--text);
+    }
+
+    .secondary-button:hover,
+    .back-button:hover {
+      transform:
+        translateY(-2px);
+
+      background:
+        var(--card-soft);
+    }
+
+    .back-button {
+      margin-bottom:
+        18px;
+    }
+
+    .text-button {
+      border: none;
+
+      background:
+        transparent;
+
+      color:
+        var(--muted);
+
+      font-weight: bold;
+    }
+
+
+    /* =====================================================
+       SEKTIONER
+    ===================================================== */
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 15px;
+
+      margin-top:
+        34px;
+
+      margin-bottom:
+        15px;
+    }
+
+    .section-header h2 {
+      margin: 0;
+    }
+
+
+    /* =====================================================
+       INFO
+    ===================================================== */
+
+    .how-grid,
+    .benefit-grid,
+    .stores {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap: 14px;
+    }
+
+    .info-card,
+    .store-card {
+      padding: 18px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius: 16px;
+
+      background:
+        var(--card);
+
+      box-shadow:
+        var(--shadow);
+
+      transition:
+        transform 0.18s,
+        box-shadow 0.18s;
+    }
+
+    .info-card:hover,
+    .store-card:hover {
+      transform:
+        translateY(-4px);
+
+      box-shadow:
+        var(--shadow-hover);
+    }
+
+    .big-icon {
+      margin-bottom:
+        10px;
+
+      font-size:
+        28px;
+    }
+
+    .info-card h3,
+    .store-card h3 {
+      margin-top: 0;
+    }
+
+    .info-card p {
+      line-height: 1.5;
+    }
+
+
+    /* =====================================================
+       KATEGORIER
+    ===================================================== */
+
+    .categories {
+      display: grid;
+
+      grid-template-columns:
+        repeat(6, 1fr);
+
+      gap: 12px;
+    }
+
+    .category {
+      padding:
+        20px
+        8px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        16px;
+
+      background:
+        var(--card);
+
+      text-align:
+        center;
+
+      cursor:
+        pointer;
+
+      transition:
+        transform 0.18s,
+        box-shadow 0.18s;
+    }
+
+    .category:hover {
+      transform:
+        translateY(-4px);
+
+      box-shadow:
+        var(--shadow-hover);
+    }
+
+    .category-icon {
+      display:
+        block;
+
+      margin-bottom:
+        10px;
+
+      font-size:
+        32px;
+    }
+
+
+    /* =====================================================
+       PRODUKTER
+    ===================================================== */
+
+    .products {
+      display: grid;
+
+      grid-template-columns:
+        repeat(3, 1fr);
+
+      gap: 18px;
+    }
+
+    .product {
+      position:
+        relative;
+
+      overflow:
+        hidden;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        18px;
+
+      background:
+        var(--card);
+
+      box-shadow:
+        var(--shadow);
+
+      transition:
+        transform 0.18s,
+        box-shadow 0.18s;
+    }
+
+    .product:hover {
+      transform:
+        translateY(-5px);
+
+      box-shadow:
+        var(--shadow-hover);
+    }
+
+    .product-click {
+      cursor:
+        pointer;
+    }
+
+    .image-wrapper {
+      position:
+        relative;
+
+      height:
+        285px;
+
+      overflow:
+        hidden;
+
+      background:
+        var(--card-soft);
+    }
+
+    .product-image {
+      width:
+        100%;
+
+      height:
+        100%;
+
+      object-fit:
+        cover;
+
+      display:
+        block;
+
+      transition:
+        transform 0.3s;
+    }
+
+    .product:hover .product-image {
+      transform:
+        scale(1.025);
+    }
+
+    .image-label {
+      position:
+        absolute;
+
+      left:
+        11px;
+
+      bottom:
+        11px;
+
+      padding:
+        6px
+        8px;
+
+      border-radius:
+        8px;
+
+      background:
+        rgba(0,0,0,0.72);
+
+      color:
+        white;
+
+      font-size:
+        10px;
+
+      font-weight:
+        bold;
+    }
+
+    .favorite-button {
+      position:
+        absolute;
+
+      top:
+        11px;
+
+      right:
+        11px;
+
+      z-index:
+        5;
+
+      width:
+        42px;
+
+      height:
+        42px;
+
+      border:
+        none;
+
+      border-radius:
+        50%;
+
+      background:
+        rgba(255,255,255,0.94);
+
+      box-shadow:
+        0 4px 15px rgba(0,0,0,0.18);
+
+      font-size:
+        19px;
+
+      transition:
+        transform 0.15s;
+    }
+
+    .favorite-button:hover {
+      transform:
+        scale(1.1);
+    }
+
+    .product-info {
+      padding:
+        15px;
+    }
+
+    .product-info h3 {
+      margin:
+        0
+        0
+        7px;
+
+      font-size:
+        18px;
+    }
+
+    .product-meta {
+      display:
+        flex;
+
+      justify-content:
+        space-between;
+
+      gap:
+        8px;
+
+      margin-bottom:
+        8px;
+
+      color:
+        var(--muted);
+
+      font-size:
+        13px;
+    }
+
+    .price {
+      margin:
+        8px
+        0;
+
+      font-size:
+        19px;
+
+      font-weight:
+        bold;
+    }
+
+    .store-name {
+      color:
+        var(--muted);
+
+      font-size:
+        14px;
+    }
+
+
+    /* =====================================================
+       FILTER
+    ===================================================== */
+
+    .filter-panel {
+      display:
+        grid;
+
+      grid-template-columns:
+        repeat(5, 1fr);
+
+      gap:
+        12px;
+
+      padding:
+        17px;
+
+      margin-bottom:
+        22px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        16px;
+
+      background:
+        var(--card);
+    }
+
+    .filter-group label {
+      display:
+        block;
+
+      margin-bottom:
+        7px;
+
+      color:
+        var(--muted);
+
+      font-size:
+        12px;
+    }
+
+    select {
+      width:
+        100%;
+
+      padding:
+        11px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        10px;
+
+      background:
+        var(--bg);
+
+      color:
+        var(--text);
+    }
+
+
+    /* =====================================================
+       PRODUKTSIDA
+    ===================================================== */
+
+    .product-detail {
+      display:
+        grid;
+
+      grid-template-columns:
+        1.15fr
+        0.85fr;
+
+      gap:
+        25px;
+
+      align-items:
+        start;
+    }
+
+    .detail-image-wrap {
+      position:
+        relative;
+
+      overflow:
+        hidden;
+
+      border-radius:
+        20px;
+
+      background:
+        var(--card-soft);
+
+      box-shadow:
+        var(--shadow);
+    }
+
+    .detail-image {
+      width:
+        100%;
+
+      height:
+        610px;
+
+      object-fit:
+        cover;
+
+      display:
+        block;
+    }
+
+    .detail-image-label {
+      position:
+        absolute;
+
+      left:
+        16px;
+
+      bottom:
+        16px;
+
+      padding:
+        8px
+        11px;
+
+      border-radius:
+        9px;
+
+      background:
+        rgba(0,0,0,0.76);
+
+      color:
+        white;
+
+      font-size:
+        11px;
+
+      font-weight:
+        bold;
+    }
+
+    .detail-info {
+      padding:
+        25px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        20px;
+
+      background:
+        var(--card);
+
+      box-shadow:
+        var(--shadow);
+    }
+
+    .detail-info h2 {
+      margin-bottom:
+        6px;
+
+      font-size:
+        30px;
+    }
+
+    .big-price {
+      margin:
+        12px
+        0
+        22px;
+
+      font-size:
+        28px;
+
+      font-weight:
+        bold;
+    }
+
+    .chip {
+      display:
+        inline-block;
+
+      padding:
+        8px
+        11px;
+
+      margin:
+        0
+        6px
+        8px
+        0;
+
+      border-radius:
+        20px;
+
+      background:
+        var(--card-soft);
+
+      font-size:
+        13px;
+    }
+
+    .product-actions {
+      display:
+        flex;
+
+      flex-wrap:
+        wrap;
+
+      gap:
+        9px;
+
+      margin-top:
+        20px;
+    }
+
+    .info-box {
+      padding:
+        16px;
+
+      margin-top:
+        20px;
+
+      border-radius:
+        13px;
+
+      background:
+        var(--card-soft);
+    }
+
+
+    /* =====================================================
+       NY BÄTTRE BUTIKSSIDA
+    ===================================================== */
+
+    .store-hero {
+      display:
+        grid;
+
+      grid-template-columns:
+        1.2fr
+        0.8fr;
+
+      gap:
+        18px;
+
+      margin-bottom:
+        25px;
+    }
+
+    .store-main-card,
+    .store-side-card {
+      padding:
+        25px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        20px;
+
+      background:
+        var(--card);
+
+      box-shadow:
+        var(--shadow);
+    }
+
+    .store-main-card h2 {
+      margin:
+        4px
+        0
+        10px;
+
+      font-size:
+        31px;
+    }
+
+    .store-type {
+      color:
+        var(--muted);
+
+      font-size:
+        13px;
+
+      font-weight:
+        bold;
+    }
+
+    .store-detail-row {
+      display:
+        flex;
+
+      align-items:
+        center;
+
+      gap:
+        8px;
+
+      margin:
+        12px
+        0;
+    }
+
+    .store-description {
+      margin-top:
+        18px;
+
+      line-height:
+        1.6;
+
+      color:
+        var(--muted);
+    }
+
+    .store-side-card h3 {
+      margin-top: 0;
+    }
+
+    .store-stat {
+      padding:
+        13px
+        0;
+
+      border-bottom:
+        1px solid var(--border);
+    }
+
+    .store-stat:last-child {
+      border-bottom:
+        none;
+    }
+
+    .store-stat strong {
+      display:
+        block;
+
+      margin-bottom:
+        4px;
+    }
+
+    .store-tags {
+      display:
+        flex;
+
+      flex-wrap:
+        wrap;
+
+      gap:
+        7px;
+
+      margin:
+        12px
+        0;
+    }
+
+    .social-row {
+      display:
+        flex;
+
+      flex-wrap:
+        wrap;
+
+      gap:
+        8px;
+
+      margin-top:
+        18px;
+    }
+
+
+    /* =====================================================
+       KARTA
+    ===================================================== */
+
+    .map-actions {
+      display:
+        flex;
+
+      flex-wrap:
+        wrap;
+
+      gap:
+        10px;
+
+      margin-bottom:
+        15px;
+    }
+
+    .map-wrapper {
+      padding:
+        10px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        18px;
+
+      background:
+        var(--card);
+
+      box-shadow:
+        var(--shadow);
+    }
+
+    #realMap {
+      width:
+        100%;
+
+      height:
+        520px;
+
+      z-index:
+        1;
+
+      border-radius:
+        13px;
+    }
+
+    .map-info {
+      padding:
+        13px;
+
+      margin-top:
+        12px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        12px;
+
+      background:
+        var(--card);
+
+      color:
+        var(--muted);
+
+      font-size:
+        13px;
+    }
+
+    .custom-map-marker {
+      width:
+        34px;
+
+      height:
+        34px;
+
+      display:
+        flex;
+
+      align-items:
+        center;
+
+      justify-content:
+        center;
+
+      border:
+        3px solid white;
+
+      border-radius:
+        50% 50% 50% 0;
+
+      background:
+        #222;
+
+      color:
+        white;
+
+      transform:
+        rotate(-45deg);
+
+      box-shadow:
+        0 4px 12px rgba(0,0,0,0.28);
+    }
+
+    .custom-map-marker span {
+      transform:
+        rotate(45deg);
+
+      font-size:
+        14px;
+    }
+
+    .map-popup {
+      min-width:
+        190px;
+
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+    }
+
+    .map-popup h3 {
+      margin:
+        0
+        0
+        7px;
+
+      font-size:
+        17px;
+    }
+
+    .map-popup p {
+      margin:
+        5px
+        0;
+
+      color:
+        #555;
+    }
+
+    .map-popup-tags {
+      margin-top:
+        8px;
+    }
+
+    .map-popup-tag {
+      display:
+        inline-block;
+
+      padding:
+        4px
+        7px;
+
+      margin:
+        2px;
+
+      border-radius:
+        999px;
+
+      background:
+        #eeeeee;
+
+      font-size:
+        10px;
+    }
+
+    .map-popup button {
+      width:
+        100%;
+
+      padding:
+        9px
+        11px;
+
+      margin-top:
+        10px;
+
+      border:
+        none;
+
+      border-radius:
+        9px;
+
+      background:
+        #222;
+
+      color:
+        white;
+
+      font-weight:
+        bold;
+    }
+
+
+    /* =====================================================
+       EMPTY / INFO
+    ===================================================== */
+
+    .empty {
+      grid-column:
+        1 / -1;
+
+      padding:
+        30px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        16px;
+
+      background:
+        var(--card);
+
+      color:
+        var(--muted);
+
+      text-align:
+        center;
+    }
+
+    .prototype-note {
+      padding:
+        14px;
+
+      margin-top:
+        30px;
+
+      border:
+        1px dashed var(--border);
+
+      border-radius:
+        14px;
+
+      background:
+        var(--card);
+
+      color:
+        var(--muted);
+
+      text-align:
+        center;
+
+      font-size:
+        13px;
+
+      line-height:
+        1.5;
+    }
+
+
+    /* =====================================================
+       TOAST
+    ===================================================== */
+
+    .toast {
+      position:
+        fixed;
+
+      left:
+        50%;
+
+      bottom:
+        100px;
+
+      z-index:
+        5000;
+
+      transform:
+        translateX(-50%)
+        translateY(20px);
+
+      padding:
+        12px
+        18px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        12px;
+
+      background:
+        var(--card);
+
+      color:
+        var(--text);
+
+      box-shadow:
+        0 10px 35px rgba(0,0,0,0.25);
+
+      opacity:
+        0;
+
+      pointer-events:
+        none;
+
+      transition:
+        opacity 0.2s,
+        transform 0.2s;
+    }
+
+    .toast.show {
+      opacity:
+        1;
+
+      transform:
+        translateX(-50%)
+        translateY(0);
+    }
+
+
+    /* =====================================================
+       NAVIGATION
+    ===================================================== */
+
+    .bottom-nav {
+      position:
+        fixed;
+
+      left:
+        50%;
+
+      bottom:
+        14px;
+
+      z-index:
+        3000;
+
+      width:
+        min(650px, 94%);
+
+      transform:
+        translateX(-50%);
+
+      display:
+        grid;
+
+      grid-template-columns:
+        repeat(4, 1fr);
+
+      gap:
+        4px;
+
+      padding:
+        7px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        18px;
+
+      background:
+        var(--nav);
+
+      backdrop-filter:
+        blur(15px);
+
+      box-shadow:
+        0 8px 35px rgba(0,0,0,0.18);
+    }
+
+    .nav-button {
+      padding:
+        10px
+        5px;
+
+      border:
+        none;
+
+      border-radius:
+        12px;
+
+      background:
+        transparent;
+
+      color:
+        var(--text);
+
+      transition:
+        background 0.15s,
+        transform 0.15s;
+    }
+
+    .nav-button:hover {
+      background:
+        var(--card-soft);
+    }
+
+    .nav-button.active {
+      background:
+        var(--card-soft);
+
+      font-weight:
+        bold;
+    }
+
+
+    /* =====================================================
+       MOBIL
+    ===================================================== */
+
+    @media
+    (max-width: 900px) {
+
+      .categories {
+        grid-template-columns:
+          repeat(3, 1fr);
+      }
+
+      .products {
+        grid-template-columns:
+          repeat(2, 1fr);
+      }
+
+      .how-grid,
+      .benefit-grid,
+      .stores {
+        grid-template-columns:
+          1fr;
+      }
+
+      .filter-panel {
+        grid-template-columns:
+          repeat(2, 1fr);
+      }
+
+      .product-detail,
+      .store-hero {
+        grid-template-columns:
+          1fr;
+      }
+
+      .detail-image {
+        height:
+          520px;
+      }
+
+    }
+
+
+    @media
+    (max-width: 550px) {
+
+      main,
+      .header-inner {
+        width:
+          calc(100% - 24px);
+      }
+
+      main {
+        padding-top:
+          16px;
+      }
+
+      .brand p {
+        display:
+          none;
+      }
+
+      .brand h1 {
+        font-size:
+          19px;
+      }
+
+      .logo-mark {
+        width:
+          40px;
+
+        height:
+          40px;
+      }
+
+      .hero {
+        padding:
+          23px
+          17px;
+      }
+
+      .hero h2 {
+        font-size:
+          28px;
+      }
+
+      .search-wrapper {
+        flex-direction:
+          column;
+      }
+
+      .primary-button {
+        width:
+          100%;
+      }
+
+      .categories {
+        grid-template-columns:
+          repeat(3, 1fr);
+
+        gap:
+          8px;
+      }
+
+      .category {
+        padding:
+          16px
+          4px;
+
+        font-size:
+          13px;
+      }
+
+      .products {
+        grid-template-columns:
+          repeat(2, 1fr);
+
+        gap:
+          10px;
+      }
+
+      .image-wrapper {
+        height:
+          205px;
+      }
+
+      .product-info {
+        padding:
+          11px;
+      }
+
+      .product-info h3 {
+        font-size:
+          15px;
+      }
+
+      .product-meta {
+        display:
+          block;
+      }
+
+      .product-meta span {
+        display:
+          block;
+
+        margin-top:
+          3px;
+      }
+
+      .price {
+        font-size:
+          17px;
+      }
+
+      .filter-panel {
+        grid-template-columns:
+          1fr;
+      }
+
+      .detail-image {
+        height:
+          440px;
+      }
+
+      .detail-info {
+        padding:
+          19px;
+      }
+
+      .store-main-card,
+      .store-side-card {
+        padding:
+          19px;
+      }
+
+      #realMap {
+        height:
+          430px;
+      }
+
+      .bottom-nav {
+        bottom:
+          8px;
+
+        width:
+          calc(100% - 16px);
+
+        font-size:
+          11px;
+      }
+
+      .nav-button {
+        padding:
+          9px
+          2px;
+      }
+
+    }
+
+  </style>
+</head>
+
+
+<body>
+
+
+<header>
+
+  <div class="header-inner">
+
+    <div
+      class="brand"
+      onclick="showHome()"
+    >
+
+      <div class="logo-mark">
+        FG
+      </div>
+
+      <div>
+
+        <h1>
+          Fynda Go
+        </h1>
+
+        <p>
+          Hitta second hand-kläder enklare
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <div class="header-actions">
+
+      <button
+        class="icon-button"
+        onclick="showFavorites()"
+        title="Sparade kläder"
+      >
+        ❤️
+      </button>
+
+
+      <button
+        class="icon-button"
+        id="themeButton"
+        onclick="toggleTheme()"
+        title="Byt tema"
+      >
+        🌙
+      </button>
+
+    </div>
+
+  </div>
+
+</header>
+
+
+<main id="mainContent">
+</main>
+
+
+<nav class="bottom-nav">
+
+  <button
+    class="nav-button"
+    data-view="home"
+    onclick="showHome()"
+  >
+    🏠
+    <br>
+    Hem
+  </button>
+
+
+  <button
+    class="nav-button"
+    data-view="search"
+    onclick="showDiscover()"
+  >
+    🔎
+    <br>
+    Sök
+  </button>
+
+
+  <button
+    class="nav-button"
+    data-view="map"
+    onclick="showMap()"
+  >
+    🗺️
+    <br>
+    Karta
+  </button>
+
+
+  <button
+    class="nav-button"
+    data-view="favorites"
+    onclick="showFavorites()"
+  >
+    ❤️
+    <br>
+    Sparat
+  </button>
+
+</nav>
+
+
+<div
+  id="toast"
+  class="toast"
+>
+</div>
+
+
+<script>
+
+  /* =====================================================
+     PRODUKTER
+  ===================================================== */
+
+  const products = [
+
+    {
+      id: 1,
+      name: "Grå hoodie",
+      category: "Tröjor",
+      size: "M",
+      price: 129,
+      color: "Grå",
+      condition: "Bra skick",
+      store: "Röda Korset",
+      description:
+        "Grå hoodie med luva och avslappnad passform.",
+      image:
+        "https://images.pexels.com/photos/12449571/pexels-photo-12449571.png?auto=compress&dpr=1&h=900&w=1260"
+    },
+
+    {
+      id: 2,
+      name: "Svart sweatshirt",
+      category: "Tröjor",
+      size: "L",
+      price: 89,
+      color: "Svart",
+      condition: "Mycket bra skick",
+      store: "Björkå",
+      description:
+        "Svart sweatshirt i enkel och stilren modell.",
+      image:
+        "https://images.pexels.com/photos/20450068/pexels-photo-20450068/free-photo-of-young-man-in-a-black-sweatshirt.jpeg?auto=compress&dpr=1&h=900&w=1260"
+    },
+
+    {
+      id: 3,
+      name: "Vit t-shirt",
+      category: "Tröjor",
+      size: "S",
+      price: 79,
+      color: "Vit",
+      condition: "Bra skick",
+      store: "Myrorna",
+      description:
+        "Enkel vit t-shirt som passar till de flesta outfits.",
+      image:
+        "https://images.pexels.com/photos/18186106/pexels-photo-18186106/free-photo-of-a-basic-white-t-shirt.jpeg?auto=compress&dpr=1&h=900&w=1260"
+    },
+
+    {
+      id: 4,
+      name: "Stickad tröja",
+      category: "Tröjor",
+      size: "M",
+      price: 149,
+      color: "Beige",
+      condition: "Mycket bra skick",
+      store: "Röda Korset",
+      description:
+        "Beige stickad tröja som passar höst och vinter.",
+      image:
+        "https://images.pexels.com/photos/14641423/pexels-photo-14641423.jpeg?auto=compress&dpr=1&h=900&w=1260"
+    },
+
+    {
+      id: 5,
+      name: "Blå jeans",
+      category: "Byxor",
+      size: "M",
+      price: 179,
+      color: "Blå",
+      condition: "Bra skick",
+      store: "Myrorna",
+      description:
+        "Blå denimjeans i klassisk modell.",
+      image:
+        "https://images.pexels.com/photos/30710126/pexels-photo-30710126/free-photo-of-trendy-denim-jeans-style-fashion-photography.jpeg?auto=compress&dpr=1&h=900&w=1260"
+    },
+
+    {
+      id: 6,
+      name: "Baggy jeans",
+      category: "Byxor",
+      size: "L",
+      price: 199,
+      color: "Blå",
+      condition: "Mycket bra skick",
+      store: "Björkå",
+      description:
+        "Lediga baggy-jeans med modern streetwear-passform.",
+      image:
+        "https://images.pexels.com/photos/35568704/pexels-photo-35568704/free-photo-of-trendy-denim-fashion-with-baggy-jeans.jpeg?auto=compress&dpr=1&h=900&w=1260"
+    },
+
+    {
+      id: 7,
+      name: "Svarta jeans",
+      category: "Byxor",
+      size: "S",
+      price: 149,
+      color: "Svart",
+      condition: "Bra skick",
+      store: "Röda Korset",
+      description:
+        "Svarta jeans i casual modell.",
+      image:
+        "https://images.pexels.com/photos/8096447/pexels-photo-8096447.jpeg?auto=compress&dpr=1&h=900&w=1260"
+    },
+
+    {
+      id: 8,
+      name: "Jeansjacka",
+      category: "Jackor",
+      size: "M",
+      price: 249,
+      color: "Blå",
+      condition: "Mycket bra skick",
+      store: "Myrorna",
+      description:
+        "Blå jeansjacka i klassisk denimmodell.",
+      image:
+        "https://images.pexels.com/photos/28174872/pexels-photo-28174872/free-photo-of-a-young-woman-in-jeans-and-a-denim-jacket.jpeg?auto=compress&dpr=1&h=900&w=1260"
+    },
+
+    {
+      id: 9,
+      name: "Svart jacka",
+      category: "Jackor",
+      size: "L",
+      price: 299,
+      color: "Svart",
+      condition: "Bra skick",
+      store: "Björkå",
+      description:
+        "Svart jacka i enkel urban modell.",
+      image:
+        "https://images.pexels.com/photos/18504948/pexels-photo-18504948/free-photo-of-man-in-black-jacket.jpeg?auto=compress&dpr=1&h=900&w=1260"
+    },
+
+    {
+      id: 10,
+      name: "Blå vinterjacka",
+      category: "Jackor",
+      size: "M",
+      price: 349,
+      color: "Blå",
+      condition: "Bra skick",
+      store: "Röda Korset",
+      description:
+        "Varm blå vinterjacka för kallare väder.",
+      image:
+        "https://images.pexels.com/photos/7037428/pexels-photo-7037428.jpeg?auto=compress&dpr=1&h=900&w=1260"
+    },
+
+    {
+      id: 11,
+      name: "Vit skjorta",
+      category: "Skjortor",
+      size: "M",
+      price: 119,
+      color: "Vit",
+      condition: "Mycket bra skick",
+      store: "Röda Korset",
+      description:
+        "Vit skjorta som fungerar både till vardag och fest.",
+      image:
+        "https://images.pexels.com/photos/17281873/pexels-photo-17281873/free-photo-of-white-shirts-on-the-hangers.jpeg?auto=compress&dpr=1&h=900&w=1260"
+    },
+
+    {
+      id: 12,
+      name: "Jeansshorts",
+      category: "Shorts",
+      size: "S",
+      price: 89,
+      color: "Blå",
+      condition: "Bra skick",
+      store: "Björkå",
+      description:
+        "Klassiska shorts i blå denim.",
+      image:
+        "https://images.pexels.com/photos/16215898/pexels-photo-16215898/free-photo-of-woman-in-denim-shorts.jpeg?auto=compress&dpr=1&h=900&w=1260"
+    },
+
+    {
+      id: 13,
+      name: "Svart klänning",
+      category: "Klänningar",
+      size: "M",
+      price: 199,
+      color: "Svart",
+      condition: "Mycket bra skick",
+      store: "Myrorna",
+      description:
+        "Svart klänning i stilren och enkel modell.",
+      image:
+        "https://images.pexels.com/photos/34921744/pexels-photo-34921744.jpeg?auto=compress&dpr=1&h=900&w=1260"
+    }
+
+  ];
+
+
+  /* =====================================================
+     BUTIKER
+     Fortfarande demo-data.
+  ===================================================== */
+
+  const stores = {
+
+    "Röda Korset": {
+
+      address:
+        "Göteborg",
+
+      hours:
+        "10:00–18:00",
+
+      description:
+        "Second hand-butik med varierat utbud av kläder och återbruk.",
+
+      usually:
+        "Basplagg, jackor, byxor och tröjor",
+
+      update:
+        "Utbudet varierar från dag till dag",
+
+      categories: [
+        "Tröjor",
+        "Byxor",
+        "Jackor",
+        "Skjortor"
+      ],
+
+      latitude:
+        57.7089,
+
+      longitude:
+        11.9746
+
+    },
+
+
+    "Björkå": {
+
+      address:
+        "Göteborg",
+
+      hours:
+        "10:00–19:00",
+
+      description:
+        "Second hand-butik med fokus på återbruk och ett varierande klädutbud.",
+
+      usually:
+        "Streetwear, byxor, jackor och tröjor",
+
+      update:
+        "Nya fynd kan komma in löpande",
+
+      categories: [
+        "Tröjor",
+        "Byxor",
+        "Jackor",
+        "Shorts"
+      ],
+
+      latitude:
+        57.6997,
+
+      longitude:
+        11.9515
+
+    },
+
+
+    "Myrorna": {
+
+      address:
+        "Göteborg",
+
+      hours:
+        "10:00–18:00",
+
+      description:
+        "Second hand-butik med stort och varierat sortiment.",
+
+      usually:
+        "Jeans, jackor, klänningar och vardagskläder",
+
+      update:
+        "Sortimentet ändras regelbundet",
+
+      categories: [
+        "Tröjor",
+        "Byxor",
+        "Jackor",
+        "Klänningar"
+      ],
+
+      latitude:
+        57.7044,
+
+      longitude:
+        11.9680
+
+    }
+
+  };
+
+
+  /* =====================================================
+     FAVORITER
+  ===================================================== */
+
+  let favorites =
+    JSON.parse(
+      localStorage.getItem(
+        "fyndaGoFavorites"
+      )
+    ) || [];
+
+
+  function toggleFavorite(
+    id,
+    event
+  ) {
+
+    if (event) {
+      event.stopPropagation();
+    }
+
+
+    if (
+      favorites.includes(id)
+    ) {
+
+      favorites =
+        favorites.filter(
+          favorite =>
+            favorite !== id
+        );
+
+      showToast(
+        "Borttagen från sparat"
+      );
+
+    }
+
+    else {
+
+      favorites.push(id);
+
+      showToast(
+        "Sparad ❤️"
+      );
+
+    }
+
+
+    localStorage.setItem(
+      "fyndaGoFavorites",
+      JSON.stringify(
+        favorites
+      )
+    );
+
+
+    const button =
+      document.getElementById(
+        "favorite-" + id
+      );
+
+
+    if (button) {
+
+      button.innerText =
+        favorites.includes(id)
+          ? "❤️"
+          : "🤍";
+
+    }
+
+  }
+
+
+  /* =====================================================
+     NAV
+  ===================================================== */
+
+  function setActiveNav(
+    view
+  ) {
+
+    document
+      .querySelectorAll(
+        ".nav-button"
+      )
+      .forEach(
+        button => {
+
+          button.classList.toggle(
+            "active",
+            button.dataset.view === view
+          );
+
+        }
+      );
+
+  }
+
+
+  /* =====================================================
+     TOAST
+  ===================================================== */
+
+  let toastTimer;
+
+
+  function showToast(
+    text
+  ) {
+
+    const toast =
+      document.getElementById(
+        "toast"
+      );
+
+
+    toast.innerText =
+      text;
+
+
+    toast.classList.add(
+      "show"
+    );
+
+
+    clearTimeout(
+      toastTimer
+    );
+
+
+    toastTimer =
+      setTimeout(
+        () => {
+
+          toast.classList.remove(
+            "show"
+          );
+
+        },
+        1800
+      );
+
+  }
+
+
+  /* =====================================================
+     PRODUKTER
+  ===================================================== */
+
+  function renderProducts(
+    list
+  ) {
+
+    if (
+      list.length === 0
+    ) {
+
+      return `
+
+        <div class="empty">
+
+          <h3>
+            Inga kläder hittades
+          </h3>
+
+          <p>
+            Testa ett annat filter
+            eller en annan sökning.
+          </p>
+
+        </div>
+
+      `;
+
+    }
+
+
+    return `
+
+      <div class="products">
+
+        ${
+          list
+            .map(
+              product => `
+
+                <article
+                  class="product"
+                >
+
+                  <button
+                    class="favorite-button"
+                    id="favorite-${product.id}"
+
+                    onclick="
+                      toggleFavorite(
+                        ${product.id},
+                        event
+                      )
+                    "
+                  >
+
+                    ${
+                      favorites.includes(
+                        product.id
+                      )
+                        ? "❤️"
+                        : "🤍"
+                    }
+
+                  </button>
+
+
+                  <div
+                    class="product-click"
+
+                    onclick="
+                      showProduct(
+                        ${product.id}
+                      )
+                    "
+                  >
+
+                    <div
+                      class="image-wrapper"
+                    >
+
+                      <img
+                        class="product-image"
+
+                        src="${product.image}"
+
+                        alt="${product.name}"
+                      >
+
+                      <span
+                        class="image-label"
+                      >
+                        EXEMPELBILD
+                      </span>
+
+                    </div>
+
+
+                    <div
+                      class="product-info"
+                    >
+
+                      <h3>
+                        ${product.name}
+                      </h3>
+
+
+                      <div
+                        class="product-meta"
+                      >
+
+                        <span>
+                          Storlek ${product.size}
+                        </span>
+
+                        <span>
+                          ${product.condition}
+                        </span>
+
+                      </div>
+
+
+                      <div
+                        class="price"
+                      >
+                        ${product.price} kr
+                      </div>
+
+
+                      <div
+                        class="store-name"
+                      >
+                        📍 ${product.store}
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </article>
+
+              `
+            )
+            .join("")
+        }
+
+      </div>
+
+    `;
+
+  }
+
+
+  /* =====================================================
+     HEM
+  ===================================================== */
+
+  function showHome() {
+
+    setActiveNav(
+      "home"
+    );
+
+
+    const main =
+      document.getElementById(
+        "mainContent"
+      );
+
+
+    main.innerHTML = `
+
+      <section
+        class="hero"
+      >
+
+        <span
+          class="hero-badge"
+        >
+          KLICKBAR PROTOTYP
+        </span>
+
+
+        <h2>
+          Second hand.
+          Enklare att hitta.
+        </h2>
+
+
+        <p>
+
+          Fynda Go hjälper dig att
+          hitta second hand-kläder,
+          upptäcka butiker och få
+          en bättre bild av vad du
+          kan hitta innan du åker dit.
+
+        </p>
+
+
+        <div
+          class="search-wrapper"
+        >
+
+          <input
+            class="search"
+
+            id="homeSearch"
+
+            placeholder="Sök efter hoodie, jeans, jacka..."
+
+            onkeydown="
+              homeSearchEnter(event)
+            "
+          >
+
+
+          <button
+            class="primary-button"
+
+            onclick="
+              startHomeSearch()
+            "
+          >
+            Sök
+          </button>
+
+        </div>
+
+      </section>
+
+
+      <div class="section-header">
+        <h2>
+          Så fungerar det
+        </h2>
+      </div>
+
+
+      <div class="how-grid">
+
+        <div class="info-card">
+
+          <div class="big-icon">
+            🔎
+          </div>
+
+          <h3>
+            1. Sök
+          </h3>
+
+          <p class="muted">
+            Sök efter till exempel
+            hoodie, jeans eller jacka.
+          </p>
+
+        </div>
+
+
+        <div class="info-card">
+
+          <div class="big-icon">
+            🏪
+          </div>
+
+          <h3>
+            2. Hitta butik
+          </h3>
+
+          <p class="muted">
+            Se vilka second hand-butiker
+            som kan passa det du söker.
+          </p>
+
+        </div>
+
+
+        <div class="info-card">
+
+          <div class="big-icon">
+            📍
+          </div>
+
+          <h3>
+            3. Besök
+          </h3>
+
+          <p class="muted">
+            Hitta butiken på kartan
+            och upptäck utbudet på plats.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="section-header">
+        <h2>
+          Kategorier
+        </h2>
+      </div>
+
+
+      <div class="categories">
+
+        ${categoryCard(
+          "Tröjor",
+          "👕"
+        )}
+
+        ${categoryCard(
+          "Byxor",
+          "👖"
+        )}
+
+        ${categoryCard(
+          "Jackor",
+          "🧥"
+        )}
+
+        ${categoryCard(
+          "Skjortor",
+          "👔"
+        )}
+
+        ${categoryCard(
+          "Shorts",
+          "🩳"
+        )}
+
+        ${categoryCard(
+          "Klänningar",
+          "👗"
+        )}
+
+      </div>
+
+
+      <div class="section-header">
+
+        <h2>
+          Populärt just nu
+        </h2>
+
+
+        <button
+          class="text-button"
+
+          onclick="
+            showDiscover()
+          "
+        >
+          Visa alla →
+        </button>
+
+      </div>
+
+
+      ${
+        renderProducts(
+          products.slice(
+            0,
+            6
+          )
+        )
+      }
+
+
+      <div class="section-header">
+        <h2>
+          Varför Fynda Go?
+        </h2>
+      </div>
+
+
+      <div class="benefit-grid">
+
+        <div class="info-card">
+
+          <div class="big-icon">
+            🧭
+          </div>
+
+          <h3>
+            Mindre chansning
+          </h3>
+
+          <p class="muted">
+            Få en bättre idé om vilken
+            butik som kan passa innan
+            du åker dit.
+          </p>
+
+        </div>
+
+
+        <div class="info-card">
+
+          <div class="big-icon">
+            ♻️
+          </div>
+
+          <h3>
+            Enklare second hand
+          </h3>
+
+          <p class="muted">
+            Samla sökning, butiker
+            och karta på ett ställe.
+          </p>
+
+        </div>
+
+
+        <div class="info-card">
+
+          <div class="big-icon">
+            🏙️
+          </div>
+
+          <h3>
+            Upptäck fler
+          </h3>
+
+          <p class="muted">
+            Hitta second hand-butiker
+            du kanske inte visste fanns.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="section-header">
+        <h2>
+          Butiker
+        </h2>
+      </div>
+
+
+      ${
+        renderStores()
+      }
+
+
+      <div class="prototype-note">
+
+        Detta är en prototyp.
+        Produktbilder, priser, öppettider
+        och butiksinformation används
+        som exempeldata.
+
+      </div>
+
+    `;
+
+
+    window.scrollTo(
+      0,
+      0
+    );
+
+  }
+
+
+  function categoryCard(
+    name,
+    icon
+  ) {
+
+    return `
+
+      <div
+        class="category"
+
+        onclick="
+          showCategory(
+            '${name}'
+          )
+        "
+      >
+
+        <span
+          class="category-icon"
+        >
+          ${icon}
+        </span>
+
+        ${name}
+
+      </div>
+
+    `;
+
+  }
+
+
+  /* =====================================================
+     KATEGORI
+  ===================================================== */
+
+  function showCategory(
+    category
+  ) {
+
+    setActiveNav(
+      ""
+    );
+
+
+    const list =
+      products.filter(
+        product =>
+          product.category ===
+          category
+      );
+
+
+    document.getElementById(
+      "mainContent"
+    ).innerHTML = `
+
+      <button
+        class="back-button"
+        onclick="showHome()"
+      >
+        ← Hem
+      </button>
+
+
+      <h2>
+        ${category}
+      </h2>
+
+
+      <p class="muted">
+        ${list.length}
+        exempel hittades
+      </p>
+
+
+      <div
+        class="filter-panel"
+      >
+
+        <div class="filter-group">
+
+          <label>
+            Storlek
+          </label>
+
+          <select
+            id="categorySize"
+            onchange="
+              updateCategory(
+                '${category}'
+              )
+            "
+          >
+
+            <option>
+              Alla
+            </option>
+
+            <option>S</option>
+            <option>M</option>
+            <option>L</option>
+            <option>XL</option>
+
+          </select>
+
+        </div>
+
+
+        <div class="filter-group">
+
+          <label>
+            Färg
+          </label>
+
+          <select
+            id="categoryColor"
+            onchange="
+              updateCategory(
+                '${category}'
+              )
+            "
+          >
+
+            <option>
+              Alla
+            </option>
+
+            <option>Svart</option>
+            <option>Vit</option>
+            <option>Grå</option>
+            <option>Blå</option>
+            <option>Beige</option>
+
+          </select>
+
+        </div>
+
+
+        <div class="filter-group">
+
+          <label>
+            Maxpris
+          </label>
+
+          <select
+            id="categoryPrice"
+            onchange="
+              updateCategory(
+                '${category}'
+              )
+            "
+          >
+
+            <option value="9999">
+              Alla priser
+            </option>
+
+            <option value="100">
+              100 kr
+            </option>
+
+            <option value="200">
+              200 kr
+            </option>
+
+            <option value="300">
+              300 kr
+            </option>
+
+            <option value="400">
+              400 kr
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div class="filter-group">
+
+          <label>
+            Sortera
+          </label>
+
+          <select
+            id="categorySort"
+            onchange="
+              updateCategory(
+                '${category}'
+              )
+            "
+          >
+
+            <option value="default">
+              Rekommenderat
+            </option>
+
+            <option value="cheap">
+              Billigast
+            </option>
+
+            <option value="expensive">
+              Dyrast
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+
+      <div id="categoryResults">
+
+        ${
+          renderProducts(
+            list
+          )
+        }
+
+      </div>
+
+    `;
+
+
+    window.scrollTo(
+      0,
+      0
+    );
+
+  }
+
+
+  function updateCategory(
+    category
+  ) {
+
+    const size =
+      document.getElementById(
+        "categorySize"
+      ).value;
+
+
+    const color =
+      document.getElementById(
+        "categoryColor"
+      ).value;
+
+
+    const maxPrice =
+      Number(
+        document.getElementById(
+          "categoryPrice"
+        ).value
+      );
+
+
+    const sort =
+      document.getElementById(
+        "categorySort"
+      ).value;
+
+
+    let list =
+      products.filter(
+        product =>
+          product.category ===
+          category
+      );
+
+
+    if (
+      size !== "Alla"
+    ) {
+
+      list =
+        list.filter(
+          product =>
+            product.size === size
+        );
+
+    }
+
+
+    if (
+      color !== "Alla"
+    ) {
+
+      list =
+        list.filter(
+          product =>
+            product.color === color
+        );
+
+    }
+
+
+    list =
+      list.filter(
+        product =>
+          product.price <=
+          maxPrice
+      );
+
+
+    if (
+      sort === "cheap"
+    ) {
+
+      list.sort(
+        (a,b) =>
+          a.price -
+          b.price
+      );
+
+    }
+
+
+    if (
+      sort === "expensive"
+    ) {
+
+      list.sort(
+        (a,b) =>
+          b.price -
+          a.price
+      );
+
+    }
+
+
+    document.getElementById(
+      "categoryResults"
+    ).innerHTML =
+      renderProducts(
+        list
+      );
+
+  }
+
+
+  /* =====================================================
+     SÖK
+  ===================================================== */
+
+  function showDiscover(
+    initialQuery = ""
+  ) {
+
+    setActiveNav(
+      "search"
+    );
+
+
+    document.getElementById(
+      "mainContent"
+    ).innerHTML = `
+
+      <h2>
+        Sök kläder
+      </h2>
+
+
+      <p class="muted">
+        Sök efter plagg,
+        färg eller butik.
+      </p>
+
+
+      <input
+        class="search"
+
+        id="discoverSearch"
+
+        placeholder="Till exempel: hoodie, svart, jeans..."
+
+        value="${initialQuery}"
+
+        oninput="
+          updateDiscover()
+        "
+      >
+
+
+      <div
+        class="filter-panel"
+        style="margin-top:15px"
+      >
+
+        <div class="filter-group">
+
+          <label>
+            Kategori
+          </label>
+
+          <select
+            id="discoverCategory"
+            onchange="updateDiscover()"
+          >
+
+            <option>Alla</option>
+            <option>Tröjor</option>
+            <option>Byxor</option>
+            <option>Jackor</option>
+            <option>Skjortor</option>
+            <option>Shorts</option>
+            <option>Klänningar</option>
+
+          </select>
+
+        </div>
+
+
+        <div class="filter-group">
+
+          <label>
+            Storlek
+          </label>
+
+          <select
+            id="discoverSize"
+            onchange="updateDiscover()"
+          >
+
+            <option>Alla</option>
+            <option>S</option>
+            <option>M</option>
+            <option>L</option>
+            <option>XL</option>
+
+          </select>
+
+        </div>
+
+
+        <div class="filter-group">
+
+          <label>
+            Butik
+          </label>
+
+          <select
+            id="discoverStore"
+            onchange="updateDiscover()"
+          >
+
+            <option>Alla</option>
+            <option>Röda Korset</option>
+            <option>Björkå</option>
+            <option>Myrorna</option>
+
+          </select>
+
+        </div>
+
+
+        <div class="filter-group">
+
+          <label>
+            Maxpris
+          </label>
+
+          <select
+            id="discoverPrice"
+            onchange="updateDiscover()"
+          >
+
+            <option value="9999">
+              Alla priser
+            </option>
+
+            <option value="100">
+              100 kr
+            </option>
+
+            <option value="200">
+              200 kr
+            </option>
+
+            <option value="300">
+              300 kr
+            </option>
+
+            <option value="400">
+              400 kr
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="discoverResults"
+      >
+      </div>
+
+    `;
+
+
+    updateDiscover();
+
+
+    window.scrollTo(
+      0,
+      0
+    );
+
+  }
+
+
+  function updateDiscover() {
+
+    const search =
+      document.getElementById(
+        "discoverSearch"
+      )
+      .value
+      .toLowerCase()
+      .trim();
+
+
+    const category =
+      document.getElementById(
+        "discoverCategory"
+      ).value;
+
+
+    const size =
+      document.getElementById(
+        "discoverSize"
+      ).value;
+
+
+    const store =
+      document.getElementById(
+        "discoverStore"
+      ).value;
+
+
+    const maxPrice =
+      Number(
+        document.getElementById(
+          "discoverPrice"
+        ).value
+      );
+
+
+    const list =
+      products.filter(
+        product => {
+
+          const text =
+            `
+              ${product.name}
+              ${product.category}
+              ${product.color}
+              ${product.store}
+            `
+            .toLowerCase();
+
+
+          return (
+
+            text.includes(
+              search
+            )
+
+            &&
+
+            (
+              category === "Alla"
+              ||
+              product.category ===
+              category
+            )
+
+            &&
+
+            (
+              size === "Alla"
+              ||
+              product.size ===
+              size
+            )
+
+            &&
+
+            (
+              store === "Alla"
+              ||
+              product.store ===
+              store
+            )
+
+            &&
+
+            product.price <=
+            maxPrice
+
+          );
+
+        }
+      );
+
+
+    document.getElementById(
+      "discoverResults"
+    ).innerHTML =
+      renderProducts(
+        list
+      );
+
+  }
+
+
+  function startHomeSearch() {
+
+    showDiscover(
+      document.getElementById(
+        "homeSearch"
+      ).value
+    );
+
+  }
+
+
+  function homeSearchEnter(
+    event
+  ) {
+
+    if (
+      event.key ===
+      "Enter"
+    ) {
+
+      startHomeSearch();
+
+    }
+
+  }
+
+
+  /* =====================================================
+     PRODUKTSIDA
+  ===================================================== */
+
+  function showProduct(
+    id
+  ) {
+
+    setActiveNav(
+      ""
+    );
+
+
+    const product =
+      products.find(
+        item =>
+          item.id === id
+      );
+
+
+    const similar =
+      products
+        .filter(
+          item =>
+            item.category ===
+            product.category
+            &&
+            item.id !==
+            product.id
+        )
+        .slice(
+          0,
+          3
+        );
+
+
+    document.getElementById(
+      "mainContent"
+    ).innerHTML = `
+
+      <button
+        class="back-button"
+
+        onclick="
+          showCategory(
+            '${product.category}'
+          )
+        "
+      >
+        ← Tillbaka
+      </button>
+
+
+      <div
+        class="product-detail"
+      >
+
+        <div
+          class="detail-image-wrap"
+        >
+
+          <img
+            class="detail-image"
+
+            src="${product.image}"
+
+            alt="${product.name}"
+          >
+
+          <span
+            class="detail-image-label"
+          >
+            EXEMPELBILD
+          </span>
+
+        </div>
+
+
+        <div
+          class="detail-info"
+        >
+
+          <p class="muted">
+            ${product.category}
+          </p>
+
+
+          <h2>
+            ${product.name}
+          </h2>
+
+
+          <div class="big-price">
+            ${product.price} kr
+          </div>
+
+
+          <span class="chip">
+            Storlek ${product.size}
+          </span>
+
+          <span class="chip">
+            ${product.color}
+          </span>
+
+          <span class="chip">
+            ${product.condition}
+          </span>
+
+
+          <p
+            style="
+              line-height:1.6;
+              margin-top:20px;
+            "
+          >
+            ${product.description}
+          </p>
+
+
+          <div
+            class="product-actions"
+          >
+
+            <button
+              class="primary-button"
+
+              onclick="
+                toggleFavorite(
+                  ${product.id}
+                );
+
+                showProduct(
+                  ${product.id}
+                );
+              "
+            >
+
+              ${
+                favorites.includes(
+                  product.id
+                )
+                  ? "❤️ Sparad"
+                  : "🤍 Spara"
+              }
+
+            </button>
+
+          </div>
+
+
+          <div
+            class="info-box"
+          >
+
+            <strong>
+              📍 Finns hos
+            </strong>
+
+
+            <h3>
+              ${product.store}
+            </h3>
+
+
+            <button
+              class="secondary-button"
+
+              onclick="
+                showStore(
+                  '${product.store}'
+                )
+              "
+            >
+              Visa butik →
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      ${
+        similar.length
+          ?
+          `
+
+            <div class="section-header">
+              <h2>
+                Liknande plagg
+              </h2>
+            </div>
+
+            ${
+              renderProducts(
+                similar
+              )
+            }
+
+          `
+          :
+          ""
+      }
+
+    `;
+
+
+    window.scrollTo(
+      0,
+      0
+    );
+
+  }
+
+
+  /* =====================================================
+     BUTIKER
+  ===================================================== */
+
+  function renderStores() {
+
+    return `
+
+      <div class="stores">
+
+        ${
+          Object.entries(
+            stores
+          )
+          .map(
+            ([name, store]) => `
+
+              <div
+                class="store-card"
+
+                onclick="
+                  showStore(
+                    '${name}'
+                  )
+                "
+              >
+
+                <h3>
+                  ${name}
+                </h3>
+
+
+                <p class="muted">
+                  📍 ${store.address}
+                </p>
+
+
+                <p>
+                  🕒 ${store.hours}
+                </p>
+
+
+                <div
+                  class="store-tags"
+                >
+
+                  ${
+                    store.categories
+                      .map(
+                        category => `
+                          <span class="chip">
+                            ${category}
+                          </span>
+                        `
+                      )
+                      .join("")
+                  }
+
+                </div>
+
+
+                <strong>
+                  Visa butik →
+                </strong>
+
+              </div>
+
+            `
+          )
+          .join("")
+        }
+
+      </div>
+
+    `;
+
+  }
+
+
+  function showStore(
+    name
+  ) {
+
+    setActiveNav(
+      ""
+    );
+
+
+    const store =
+      stores[name];
+
+
+    const storeProducts =
+      products.filter(
+        product =>
+          product.store ===
+          name
+      );
+
+
+    document.getElementById(
+      "mainContent"
+    ).innerHTML = `
+
+      <button
+        class="back-button"
+        onclick="showHome()"
+      >
+        ← Hem
+      </button>
+
+
+      <div
+        class="store-hero"
+      >
+
+        <div
+          class="store-main-card"
+        >
+
+          <div class="store-type">
+            SECOND HAND-BUTIK
+          </div>
+
+
+          <h2>
+            ${name}
+          </h2>
+
+
+          <div
+            class="store-detail-row"
+          >
+            📍
+            <span>
+              ${store.address}
+            </span>
+          </div>
+
+
+          <div
+            class="store-detail-row"
+          >
+            🕒
+            <span>
+              ${store.hours}
+            </span>
+          </div>
+
+
+          <p
+            class="store-description"
+          >
+            ${store.description}
+          </p>
+
+
+          <h3>
+            Här brukar du hitta
+          </h3>
+
+
+          <div
+            class="store-tags"
+          >
+
+            ${
+              store.categories
+                .map(
+                  category => `
+                    <span class="chip">
+                      ${category}
+                    </span>
+                  `
+                )
+                .join("")
+            }
+
+          </div>
+
+
+          <div class="social-row">
+
+            <button
+              class="primary-button"
+
+              onclick="
+                showMap(
+                  '${name}'
+                )
+              "
+            >
+              🗺️ Visa på karta
+            </button>
+
+
+            <button
+              class="secondary-button"
+
+              onclick="
+                showToast(
+                  'Instagram – demo'
+                )
+              "
+            >
+              📸 Instagram
+            </button>
+
+
+            <button
+              class="secondary-button"
+
+              onclick="
+                showToast(
+                  'TikTok – demo'
+                )
+              "
+            >
+              🎵 TikTok
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="store-side-card"
+        >
+
+          <h3>
+            Om butiken
+          </h3>
+
+
+          <div
+            class="store-stat"
+          >
+
+            <strong>
+              👕 Vanligt sortiment
+            </strong>
+
+            <span class="muted">
+              ${store.usually}
+            </span>
+
+          </div>
+
+
+          <div
+            class="store-stat"
+          >
+
+            <strong>
+              🔄 Sortiment
+            </strong>
+
+            <span class="muted">
+              ${store.update}
+            </span>
+
+          </div>
+
+
+          <div
+            class="store-stat"
+          >
+
+            <strong>
+              📱 Fynda Go
+            </strong>
+
+            <span class="muted">
+              Visar exempel på vad
+              butiken kan erbjuda,
+              inte exakt live-lager.
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="section-header">
+
+        <h2>
+          Exempel på kläder
+        </h2>
+
+      </div>
+
+
+      ${
+        renderProducts(
+          storeProducts
+        )
+      }
+
+
+      <div
+        class="prototype-note"
+      >
+
+        Sortimentet är exempeldata.
+        Tanken med Fynda Go är att hjälpa
+        användaren hitta rätt butik utan
+        att butiken behöver uppdatera
+        hela sitt lager manuellt.
+
+      </div>
+
+    `;
+
+
+    window.scrollTo(
+      0,
+      0
+    );
+
+  }
+
+
+  /* =====================================================
+     KARTA
+  ===================================================== */
+
+  let leafletMap =
+    null;
+
+
+  let userLocationLayer =
+    null;
+
+
+  function showMap(
+    selectedStore = ""
+  ) {
+
+    setActiveNav(
+      "map"
+    );
+
+
+    document.getElementById(
+      "mainContent"
+    ).innerHTML = `
+
+      <h2>
+        Butiker i Göteborg
+      </h2>
+
+
+      <p class="muted">
+        Dra runt, zooma och klicka
+        på en markör för att se
+        information om butiken.
+      </p>
+
+
+      <div
+        class="map-actions"
+      >
+
+        <button
+          class="primary-button"
+          onclick="locateUser()"
+        >
+          📍 Nära mig
+        </button>
+
+
+        <button
+          class="secondary-button"
+          onclick="resetMapView()"
+        >
+          🏙️ Visa Göteborg
+        </button>
+
+      </div>
+
+
+      <div
+        class="map-wrapper"
+      >
+
+        <div
+          id="realMap"
+        >
+        </div>
+
+      </div>
+
+
+      <div
+        class="map-info"
+      >
+
+        Kartan är interaktiv.
+        Butikernas positioner används
+        som demo-positioner i prototypen.
+
+      </div>
+
+
+      <div class="section-header">
+
+        <h2>
+          Alla butiker
+        </h2>
+
+      </div>
+
+
+      ${
+        renderStores()
+      }
+
+    `;
+
+
+    window.scrollTo(
+      0,
+      0
+    );
+
+
+    setTimeout(
+      () => {
+
+        createRealMap(
+          selectedStore
+        );
+
+      },
+      80
+    );
+
+  }
+
+
+  function createRealMap(
+    selectedStore = ""
+  ) {
+
+    if (
+      leafletMap
+    ) {
+
+      leafletMap.remove();
+
+      leafletMap =
+        null;
+
+    }
+
+
+    leafletMap =
+      L.map(
+        "realMap"
+      )
+      .setView(
+        [
+          57.7089,
+          11.9746
+        ],
+        13
+      );
+
+
+    L.tileLayer(
+      "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        maxZoom:
+          19,
+
+        attribution:
+          "&copy; OpenStreetMap contributors"
+      }
+    )
+    .addTo(
+      leafletMap
+    );
+
+
+    const markerIcon =
+      L.divIcon(
+        {
+          className:
+            "",
+
+          html:
+            `
+              <div class="custom-map-marker">
+                <span>FG</span>
+              </div>
+            `,
+
+          iconSize:
+            [34,34],
+
+          iconAnchor:
+            [17,34],
+
+          popupAnchor:
+            [0,-32]
+        }
+      );
+
+
+    Object.entries(
+      stores
+    )
+    .forEach(
+      ([name, store]) => {
+
+        const marker =
+          L.marker(
+            [
+              store.latitude,
+              store.longitude
+            ],
+            {
+              icon:
+                markerIcon
+            }
+          )
+          .addTo(
+            leafletMap
+          );
+
+
+        marker.bindPopup(`
+
+          <div
+            class="map-popup"
+          >
+
+            <h3>
+              ${name}
+            </h3>
+
+
+            <p>
+              📍 Göteborg
+            </p>
+
+
+            <p>
+              🕒 ${store.hours}
+            </p>
+
+
+            <div
+              class="map-popup-tags"
+            >
+
+              ${
+                store.categories
+                  .slice(
+                    0,
+                    3
+                  )
+                  .map(
+                    category => `
+
+                      <span
+                        class="map-popup-tag"
+                      >
+                        ${category}
+                      </span>
+
+                    `
+                  )
+                  .join("")
+              }
+
+            </div>
+
+
+            <button
+              onclick="
+                showStore(
+                  '${name}'
+                )
+              "
+            >
+              Visa butik
+            </button>
+
+          </div>
+
+        `);
+
+
+        if (
+          selectedStore ===
+          name
+        ) {
+
+          leafletMap.setView(
+            [
+              store.latitude,
+              store.longitude
+            ],
+            15
+          );
+
+
+          marker.openPopup();
+
+        }
+
+      }
+    );
+
+
+    setTimeout(
+      () => {
+
+        leafletMap.invalidateSize();
+
+      },
+      150
+    );
+
+  }
+
+
+  function resetMapView() {
+
+    if (
+      !leafletMap
+    ) {
+      return;
+    }
+
+
+    leafletMap.setView(
+      [
+        57.7089,
+        11.9746
+      ],
+      13
+    );
+
+  }
+
+
+  function locateUser() {
+
+    if (
+      !navigator.geolocation
+    ) {
+
+      showToast(
+        "Platsfunktionen stöds inte"
+      );
+
+      return;
+
+    }
+
+
+    showToast(
+      "Försöker hitta din plats..."
+    );
+
+
+    navigator
+      .geolocation
+      .getCurrentPosition(
+
+        position => {
+
+          const lat =
+            position.coords.latitude;
+
+
+          const lng =
+            position.coords.longitude;
+
+
+          if (
+            userLocationLayer
+          ) {
+
+            leafletMap.removeLayer(
+              userLocationLayer
+            );
+
+          }
+
+
+          userLocationLayer =
+            L.circleMarker(
+              [
+                lat,
+                lng
+              ],
+              {
+                radius:
+                  9,
+
+                color:
+                  "#3377ff",
+
+                fillColor:
+                  "#3377ff",
+
+                fillOpacity:
+                  1
+              }
+            )
+            .addTo(
+              leafletMap
+            )
+            .bindPopup(
+              "Du är här"
+            )
+            .openPopup();
+
+
+          leafletMap.setView(
+            [
+              lat,
+              lng
+            ],
+            14
+          );
+
+
+          showToast(
+            "Plats hittad"
+          );
+
+        },
+
+
+        () => {
+
+          showToast(
+            "Kunde inte hämta din plats"
+          );
+
+        }
+
+      );
+
+  }
+
+
+  /* =====================================================
+     FAVORITER
+  ===================================================== */
+
+  function showFavorites() {
+
+    setActiveNav(
+      "favorites"
+    );
+
+
+    const list =
+      products.filter(
+        product =>
+          favorites.includes(
+            product.id
+          )
+      );
+
+
+    document.getElementById(
+      "mainContent"
+    ).innerHTML = `
+
+      <h2>
+        ❤️ Sparade kläder
+      </h2>
+
+
+      <p class="muted">
+        Produkter som du sparar
+        visas här.
+      </p>
+
+
+      ${
+        renderProducts(
+          list
+        )
+      }
+
+    `;
+
+
+    window.scrollTo(
+      0,
+      0
+    );
+
+  }
+
+
+  /* =====================================================
+     DARK MODE
+  ===================================================== */
+
+  function toggleTheme() {
+
+    document.body
+      .classList
+      .toggle(
+        "dark"
+      );
+
+
+    const dark =
+      document.body
+        .classList
+        .contains(
+          "dark"
+        );
+
+
+    localStorage.setItem(
+      "fyndaGoTheme",
+      dark
+        ? "dark"
+        : "light"
+    );
+
+
+    updateThemeIcon();
+
+  }
+
+
+  function updateThemeIcon() {
+
+    document.getElementById(
+      "themeButton"
+    ).innerText =
+
+      document.body
+        .classList
+        .contains(
+          "dark"
+        )
+
+        ? "☀️"
+
+        : "🌙";
+
+  }
+
+
+  function loadTheme() {
+
+    if (
+      localStorage.getItem(
+        "fyndaGoTheme"
+      ) ===
+      "dark"
+    ) {
+
+      document.body
+        .classList
+        .add(
+          "dark"
+        );
+
+    }
+
+
+    updateThemeIcon();
+
+  }
+
+
+  /* =====================================================
+     START
+  ===================================================== */
+
+  loadTheme();
+
+  showHome();
+
+</script>
+
+
+</body>
+</html>
